@@ -395,7 +395,7 @@ long	num,x,y;
 
 void GetCoins(short amount)
 {
-	short coinsBefore = gNumCoins;
+	long coinsBefore = gNumCoins;
 	gNumCoins += amount;
 	if (gNumCoins / 50 != coinsBefore / 50)
 		MR_EMIT("coins", gNumCoins, 0);

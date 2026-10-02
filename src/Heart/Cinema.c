@@ -718,7 +718,7 @@ long		count;
 	GAME_ASSERT(iErr == noErr);
 	MR_EMIT_STR("file", "HighScores");
 	{
-		static char json[MAX_HIGH_SCORES * 48];
+		static char json[MAX_HIGH_SCORES * 56];
 		int n = SDL_snprintf(json, sizeof json, "[");
 		for (int k = 0; k < MAX_HIGH_SCORES; k++)
 		{
