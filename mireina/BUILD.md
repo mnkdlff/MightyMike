@@ -103,3 +103,62 @@ Notes on the toolchain, for the record:
 - Before the CMake patch, the web build failed at link with `undefined symbol: glOrtho` (and the
   rest of the fixed-function GL calls in `src/Drivers/GLRender.c`) — that is what turning
   `GLRENDER` off on the web fixes.
+
+## Events (MiReina bridge)
+
+The engine notifies the page by dispatching a `CustomEvent("powerpete")` on `window`, whose
+`detail` is `{ kind, a, b }` for `MR_EMIT(kind, a, b)` or `{ kind, s }` for
+`MR_EMIT_STR(kind, s)` (`src/Web/MRBridge.c`, `src/Web/MRBridge.h`). 34 distinct kinds are
+emitted, grouped below in the order they appear in the Task 5 brief's "Produces" list:
+
+| Kind | a | b / s | Emitted by |
+|---|---|---|---|
+| `title` | 0 | 0 | `src/Heart/Cinema.c:DoTitleScreen` |
+| `settings` | 0 | 0 | `src/Heart/SettingsScreen.c:DoSettingsScreen` |
+| `difficulty` | difficulty mode | 0 | `src/Heart/Cinema.c:DoDifficultyScreen` |
+| `players` | 1 or 2 | 0 | `src/Heart/Cinema.c:ChoosePlayerMode` |
+| `game_start` | difficulty | restored (0/1) | `src/Heart/Main.c:InitGame` |
+| `world_intro` | scene | 0 | `src/Heart/Cinema.c:DoSceneScreen` |
+| `area_start` | scene | area | `src/Heart/Main.c:InitArea` |
+| `attempt` | scene | area | `src/Heart/Main.c:PlayArea` |
+| `bunny_freed` | bunnies left | bunnies total | `src/Misc/Bonus.c:DecBunnyCount` |
+| `all_bunnies` | scene | area | `src/Misc/Bonus.c:DecBunnyCount` |
+| `weapon` | weapon type | 0 | `src/MeAndMo/Weapon.c:GetAWeapon` |
+| `key` | key index | 0 | `src/MeAndMo/MyGuy.c:MeHitBonusObject` |
+| `heart` | health | 0 | `src/Heart/Infobar.c:GiveMeHealth` |
+| `coins` | coins total | 0 | `src/Heart/Infobar.c:GetCoins` |
+| `nuke` | 0 | 0 | `src/Misc/Bonus.c:StartNuke` |
+| `life_lost` | lives left | 0 | `src/Heart/Main.c:Do1PlayerGame`, `src/Heart/Main.c:Do2PlayerGame` |
+| `area_done` | scene | area | `src/MeAndMo/MyGuy.c:MoveMe_Liftoff` |
+| `bonus` | bunnies | coins | `src/Heart/Cinema.c:ShowBonusScreen` |
+| `saved` | slot | 0 | `src/Heart/Main.c:SaveGame` |
+| `loaded` | slot | 0 | `src/Heart/Main.c:LoadGame` |
+| `game_over` | score | 0 | `src/Heart/Cinema.c:DoLoseScreen` |
+| `win` | difficulty | score | `src/Heart/Cinema.c:DoWinScreen` |
+| `score_shown` | score | 0 | `src/Heart/Cinema.c:ShowLastScore` |
+| `high_score` | rank | score | `src/Heart/Cinema.c:AddHighScore` |
+| `name_entry` | 1 or 0 | 0 | `src/Heart/Cinema.c:DoEnterName` |
+| `credits` | 0 | 0 | `src/Heart/Cinema.c:DoCredits` |
+| `pause` | 1 or 0 | 0 | `src/Heart/Infobar.c:ShowPaused`, `src/Heart/Infobar.c:AskIfQuit` |
+| `quit_game` | score | 0 | `src/Heart/Infobar.c:AskIfQuit` |
+| `exit` | 0 | 0 | `src/Heart/Misc.c:CleanQuit` |
+| `file` | — | `s` = file name | `src/Heart/Cinema.c:SaveHighScores`, `src/Heart/Main.c:SaveGame`, `src/Heart/Main.c:SavePrefs` |
+| `scores` | — | `s` = JSON array | `src/Heart/Cinema.c:SaveHighScores` |
+| `alert` | — | `s` = message | `src/Heart/Misc.c:DoAlert` |
+| `fatal` | — | `s` = message | `src/Heart/Misc.c:DoAssert`, `src/Heart/Misc.c:DoFatalAlert`, `src/Heart/Misc.c:DoFatalAlert2` |
+| `boot` | 0 | 0 | `src/Web/MRBridge.c:MR_Boot` |
+
+Verified against the source with `grep -rho 'MR_EMIT\(_STR\)\?("[a-z_]*"' src | sort -u`: 34
+distinct kinds, matching the list above.
+
+## Game files
+
+The game writes its files under `/home/web_user/.config/MightyMike/` (Emscripten's virtual
+filesystem). The page learns about each write through the `file` event, whose `s` carries the
+file name:
+
+- `Prefs`
+- `HighScores`
+- `PowerPeteSavedGameData1` .. `PowerPeteSavedGameData4` (one-player save slots)
+- `PowerPeteSavedGameData2x<p><g>` (two-player save slots, `<p>` = player, `<g>` = game number)
+- `PeteP1Swap.data`, `PeteP2Swap.data`
