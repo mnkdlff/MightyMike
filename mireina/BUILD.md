@@ -74,8 +74,25 @@ play audio, which exempts the tab from throttling) when timing anything.
   straight through to Emscripten as an event target string, not a DOM id, so it is set to the CSS
   selector `"#pp-canvas"` (not `"#canvas"`).
 
+- **`src/Heart/Main.c`, `InitDefaultPrefs`**: the web defaults (Task 4) also set
+  `gGamePrefs.displayMode = kDisplayMode_Windowed`. Left at its native default of
+  `kDisplayMode_FullscreenStretched`, `ApplyPrefs()` → `SetFullscreenMode(true)` calls
+  `SDL_SetWindowFullscreen(gSDLWindow, true)` on boot, which on the Emscripten/SDL3 web backend
+  stretches the canvas to the screen's resolution as soon as the deferred fullscreen request
+  resolves on the player's first gesture (click or key press) — breaking the fixed 832×480 canvas
+  the page relies on. Forcing windowed mode on the web keeps `SetFullscreenMode` from ever calling
+  `SDL_SetWindowFullscreen`; native behavior is unchanged.
+
+- **`src/Heart/SettingsScreen.c`, `OnMenuEntered`**: hiding the `"windowed zoom"` and `"monitor"`
+  cycler entries from `gVideoMenu` on the web (Task 4) left `OnMenuEntered`'s
+  `GAME_ASSERT(row >= 0)` calls with nothing to find — `FindRowControlling` returns `-1` for
+  `gGamePrefs.windowedZoom` and `gGamePrefs.displayNum` once those rows don't exist, firing a fatal
+  assertion (and exiting the app) the moment a player opened Settings > Video on the web build.
+  Wrapped the whole `if (gMenu == gVideoMenu) { ... }` body in `#if !MR_WEB`, since those
+  `numChoices` recalculations are meaningless on the web anyway; native behavior is unchanged.
+
 Otherwise none. The unmodified engine and Pomme compiled under Emscripten 6.0.10 without a single
-source fix beyond the four guarded patches listed above.
+source fix beyond the six guarded patches listed above.
 
 Notes on the toolchain, for the record:
 
