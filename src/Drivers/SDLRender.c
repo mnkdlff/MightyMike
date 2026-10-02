@@ -7,6 +7,10 @@
 #include "renderdrivers.h"
 #include "framebufferfilter.h"
 
+#if MR_WEB
+#include <emscripten/emscripten.h>
+#endif
+
 #if _DEBUG
 #define CHECK_SDL_ERROR(success)										\
 	do {					 											\
@@ -141,6 +145,10 @@ void SDLRender_PresentFramebuffer(void)
 	success = SDL_RenderTexture(gSDLRenderer, gSDLTexture, NULL, NULL);
 	CHECK_SDL_ERROR(success);
 	SDL_RenderPresent(gSDLRenderer);
+
+#if MR_WEB
+	emscripten_sleep(0);		// yield to the browser: paint the canvas, deliver input events (ASYNCIFY)
+#endif
 }
 
 #endif

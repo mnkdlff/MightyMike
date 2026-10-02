@@ -17,6 +17,12 @@ It does bring a few enhancements, such as:
 - Framerate cap removal (with movement interpolation)
 - Twin-stick gamepad controls
 
+## MiReina edition
+
+This branch (`mireina`) adds a WebAssembly build and a small bridge so the game can run inside a private
+website for one person, with touch controls and personalised texts. Modifications are listed in
+`mireina/BUILD.md`. Same licence as the rest of this repository (CC BY-NC-SA 4.0).
+
 ## Documentation
 
 - [BUILD.md](BUILD.md) — How to build on macOS, Windows or Linux.

@@ -56,6 +56,14 @@ set(POMME_NO_QD3D		true)
 set(POMME_NO_VIDEO		true)
 add_compile_definitions(POMME_CASE_SENSITIVE_FSSPEC=1)
 
+if(EMSCRIPTEN)
+	# C++ exceptions through the JS mechanism: wasm-native exceptions are incompatible with ASYNCIFY,
+	# which the game needs to yield its blocking loops to the browser. Must apply to Pomme too.
+	add_compile_options(-fexceptions)
+	add_link_options(-fexceptions)
+	add_compile_definitions(MR_WEB=1)
+endif()
+
 #------------------------------------------------------------------------------
 # FIND SDL
 #------------------------------------------------------------------------------
@@ -95,7 +103,9 @@ endif()
 
 add_subdirectory(extern/Pomme)
 
-find_package(OpenGL REQUIRED)  # only actually required if we want to force GLRENDER
+if(NOT EMSCRIPTEN)
+	find_package(OpenGL REQUIRED)  # only actually required if we want to force GLRENDER
+endif()
 
 #------------------------------------------------------------------------------
 # EXECUTABLE TARGET
@@ -121,7 +131,7 @@ endif()
 
 add_executable(${GAME_TARGET} ${GAME_SOURCES})
 
-target_include_directories(${GAME_TARGET} PRIVATE ${GAME_SRCDIR}/Headers)
+target_include_directories(${GAME_TARGET} PRIVATE ${GAME_SRCDIR}/Headers ${GAME_SRCDIR}/Web)
 
 #------------------------------------------------------------------------------
 # COMPILER/LINKER OPTIONS
@@ -129,7 +139,7 @@ target_include_directories(${GAME_TARGET} PRIVATE ${GAME_SRCDIR}/Headers)
 
 add_compile_definitions(
 	"$<$<CONFIG:DEBUG>:_DEBUG>"
-	GLRENDER    # Mighty Mike only (comment out to use SDL's 2D renderer)
+	"$<$<NOT:$<BOOL:${EMSCRIPTEN}>>:GLRENDER>"   # desktop: OpenGL; web: SDL's 2D renderer on WebGL2
 	#NOVSYNC    # Mighty Mike only
 )
 
@@ -203,14 +213,13 @@ if(NOT APPLE AND NOT WIN32)
 endif()
 
 # Link SDL
-if(NOT SDL_STATIC)
-	target_link_libraries(${GAME_TARGET} PRIVATE SDL3::SDL3)
+if(EMSCRIPTEN)
+	target_link_libraries(${GAME_TARGET} PRIVATE SDL3::SDL3-static Pomme)
+elseif(NOT SDL_STATIC)
+	target_link_libraries(${GAME_TARGET} PRIVATE SDL3::SDL3 Pomme OpenGL::GL)
 else()
-	target_link_libraries(${GAME_TARGET} PRIVATE SDL3::SDL3-static)
+	target_link_libraries(${GAME_TARGET} PRIVATE SDL3::SDL3-static Pomme OpenGL::GL)
 endif()
-
-# Link core dependencies
-target_link_libraries(${GAME_TARGET} PRIVATE Pomme OpenGL::GL)
 
 # Add required frameworks for KillMacMouseAcceleration
 if(APPLE)
@@ -312,3 +321,33 @@ endif()
 
 # Copy documentation to output folder
 configure_file(${CMAKE_SOURCE_DIR}/packaging/ReadMe.txt.in ${CMAKE_CURRENT_BINARY_DIR}/ReadMe.txt)
+
+#------------------------------------------------------------------------------
+# EMSCRIPTEN (MiReina web build)
+#------------------------------------------------------------------------------
+
+if(EMSCRIPTEN)
+	target_include_directories(${GAME_TARGET} PRIVATE ${GAME_SRCDIR}/Web)
+	set_target_properties(${GAME_TARGET} PROPERTIES OUTPUT_NAME "pete" SUFFIX ".js")
+	target_link_options(${GAME_TARGET} PRIVATE
+		-sMODULARIZE=1
+		-sEXPORT_NAME=createPowerPete
+		-sENVIRONMENT=web
+		-sASYNCIFY=1                      # the 1995 loops block; SDL_Delay yields through emscripten_sleep
+		-sASYNCIFY_STACK_SIZE=65536
+		-sALLOW_MEMORY_GROWTH=1
+		-sINITIAL_MEMORY=67108864
+		-sMAXIMUM_MEMORY=536870912
+		-sEXIT_RUNTIME=1                  # Quit → main returns → onExit → back to the vestíbulo
+		-sDISABLE_EXCEPTION_CATCHING=0
+		-sUSE_WEBGL2=1
+		-sMIN_WEBGL_VERSION=2
+		-sGL_ENABLE_GET_PROC_ADDRESS=1
+		"-sEXPORTED_RUNTIME_METHODS=['FS','wasmMemory']"
+		"-sEXPORTED_FUNCTIONS=['_main']"
+		"--preload-file=${GAME_DATADIR}@/Data"
+		"--exclude-file=*gamecontrollerdb.txt"
+		"--exclude-file=*view68k.tga"
+		"--exclude-file=*viewppc.tga"
+	)
+endif()

@@ -28,7 +28,9 @@ static fs::path FindGameData(const char* executablePath)
 
 	int attemptNum = 0;
 
-#if !(__APPLE__)
+#if MR_WEB
+	attemptNum = 2;		// the Data folder is preloaded at /Data by Emscripten
+#elif !(__APPLE__)
 	attemptNum++;		// skip macOS special case #0
 #endif
 
@@ -91,6 +93,11 @@ static void Boot(int argc, char** argv)
 	// Start our "machine"
 	Pomme::Init();
 
+#if MR_WEB
+	SDL_SetHint(SDL_HINT_EMSCRIPTEN_CANVAS_SELECTOR, "#pp-canvas");
+	SDL_SetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT, "#canvas");		// keyboard only while the canvas has focus
+#endif
+
 	// Initialize SDL video subsystem
 	if (!SDL_Init(SDL_INIT_VIDEO))
 	{
@@ -120,6 +127,7 @@ static void Boot(int argc, char** argv)
 	// Find path to game data folder
 	fs::path dataPath = FindGameData(executablePath);
 
+#if !MR_WEB
 	// Init joystick subsystem
 	{
 		SDL_Init(SDL_INIT_GAMEPAD);
@@ -129,6 +137,9 @@ static void Boot(int argc, char** argv)
 			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, GAME_FULL_NAME, "Couldn't load gamecontrollerdb.txt!", gSDLWindow);
 		}
 	}
+#else
+	SDL_Init(SDL_INIT_GAMEPAD);		// SDL's built-in mappings are enough in the browser
+#endif
 }
 
 static void Shutdown()
@@ -181,7 +192,9 @@ int main(int argc, char** argv)
 	if (!success)
 	{
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Uncaught exception: %s", uncaught.c_str());
+#if !MR_WEB
 		SDL_ShowSimpleMessageBox(0, GAME_FULL_NAME, uncaught.c_str(), nullptr);
+#endif
 	}
 
 	return success ? 0 : 1;

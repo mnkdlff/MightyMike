@@ -1,0 +1,53 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Power Pete · dev</title>
+<style>
+  body { margin: 0; background: #111; color: #ddd; font: 13px/1.4 ui-monospace, monospace; }
+  #pp-canvas { display: block; width: 832px; height: 480px; background: #000; outline: none; }
+  #bar { padding: 6px; } button { margin-right: 6px; }
+  #log { height: 220px; overflow: auto; white-space: pre; padding: 6px; border-top: 1px solid #333; }
+</style>
+<canvas id="pp-canvas" width="832" height="480" tabindex="-1"></canvas>
+<div id="bar">
+  <button onclick="mr.pulse(0)">confirm</button>
+  <button onclick="mr.pulse(1)">back</button>
+  <button onclick="mr.pulse(2)">pause</button>
+  <button onclick="mr.left(0,-32767); setTimeout(() => mr.left(0,0), 120)">up</button>
+  <button onclick="mr.left(0,32767); setTimeout(() => mr.left(0,0), 120)">down</button>
+  <button onclick="mr.left(-32767,0); setTimeout(() => mr.left(0,0), 120)">left</button>
+  <button onclick="mr.left(32767,0); setTimeout(() => mr.left(0,0), 120)">right</button>
+  <button onclick="mr.right(32767,0); setTimeout(() => mr.right(0,0), 600)">fire right 0.6s</button>
+  <button onclick="mr.text('A')">text A</button>
+  <button onclick="mr.exit()">exit</button>
+</div>
+<div id="log"></div>
+<script src="../../build-wasm/pete.js"></script>
+<script>
+  // Mirrors MRInput (src/Web/MRBridge.h, lib/pete.ts): 32 bytes, little-endian.
+  const OFF = { lx: 0, ly: 2, rx: 4, ry: 6, held: 8, pulse: 16, textChar: 24, loadSlot: 25, music: 26, sfx: 27, audioDirty: 28, exitRequested: 29, active: 30 };
+  let ptr = 0;
+  const logEl = document.getElementById("log");
+  const log = (s) => { logEl.textContent += s + "\n"; logEl.scrollTop = logEl.scrollHeight; };
+  const Module = {
+    canvas: document.getElementById("pp-canvas"),
+    locateFile: (f) => "../../build-wasm/" + f,
+    preRun: [() => { for (const d of ["/home/web_user/.config", "/home/web_user/.config/MightyMike"]) { try { Module.FS.mkdir(d); } catch {} } }],
+    mrOnInputBuffer: (p, size) => { ptr = p; log("input block at " + p + " (" + size + " bytes)"); },
+    print: log, printErr: log,
+    onExit: (code) => log("exit " + code),
+    onAbort: (what) => log("ABORT " + what),
+  };
+  const view = () => new DataView(Module.wasmMemory.buffer, ptr, 32);
+  window.mr = {
+    pulse: (i) => { const v = view(); v.setUint8(OFF.pulse + i, (v.getUint8(OFF.pulse + i) + 1) & 255); },
+    left: (x, y) => { const v = view(); v.setInt16(OFF.lx, x, true); v.setInt16(OFF.ly, y, true); v.setUint8(OFF.active, x || y ? 1 : 0); },
+    right: (x, y) => { const v = view(); v.setInt16(OFF.rx, x, true); v.setInt16(OFF.ry, y, true); v.setUint8(OFF.active, x || y ? 1 : 0); },
+    held: (i, on) => view().setUint8(OFF.held + i, on ? 1 : 0),
+    text: (c) => view().setUint8(OFF.textChar, c.charCodeAt(0) & 127),
+    load: (slot) => view().setInt8(OFF.loadSlot, slot),
+    audio: (music, sfx) => { const v = view(); v.setUint8(OFF.music, music ? 1 : 0); v.setUint8(OFF.sfx, sfx ? 1 : 0); v.setUint8(OFF.audioDirty, 1); },
+    exit: () => view().setUint8(OFF.exitRequested, 1),
+  };
+  window.addEventListener("powerpete", (e) => log("event " + JSON.stringify(e.detail)));
+  createPowerPete(Module).then(() => { log("module ready"); Module.canvas.focus(); });
+</script>

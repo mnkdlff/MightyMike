@@ -19,3 +19,7 @@ cache/
 # macOS metadata
 .DS_Store
 
+
+# MiReina web build
+libs/
+build-wasm/
