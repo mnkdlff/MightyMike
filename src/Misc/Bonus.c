@@ -28,6 +28,7 @@
 #include "input.h"
 #include "externs.h"
 #include "tga.h"
+#include "MRBridge.h"
 
 /****************************/
 /*    CONSTANTS             */
@@ -270,9 +271,11 @@ short		i;
 
 void DecBunnyCount(void)
 {
+	MR_EMIT("bunny_freed", gNumBunnies > 0 ? gNumBunnies - 1 : 0, gBunnyCounts[gSceneNum][gAreaNum]);
 	if (--gNumBunnies <= 0)									// dec & see if that was the last bunny
 	{
 		gNumBunnies = 0;
+		MR_EMIT("all_bunnies", gSceneNum, gAreaNum);
 		DisposeFrog();										// undo frog if needed
 		DisposeSpaceShip();									// or ship
 		StartMyLiftoff();
@@ -744,6 +747,7 @@ register	ObjNode		*newObj;
 	if (newObj == nil)
 		return;
 
+	MR_EMIT("nuke", 0, 0);
 	StartShakeyScreen(newObj->NukeTimer = GAME_FPS*4);			// set duration & shake
 
 	MakeMikeMessage(MESSAGE_NUM_FIREHOLE);

@@ -113,6 +113,7 @@ short		i,startSelection;
 re_enter:
 	gStartingScene = 0;								// assume not cheating
 	gDemoTimeout = TIME_TILL_DEMO;
+	MR_EMIT("title", 0, 0);
 
 					/* INITIAL LOADING */
 
@@ -397,6 +398,7 @@ void DoSceneScreen(void)
 {
 	if (gDemoMode != DEMO_MODE_OFF)								// dont show in demo mode
 		return;
+	MR_EMIT("world_intro", gSceneNum, 0);
 
 	InitObjectManager();
 	FadeOutGameCLUT();											// fade out old screen
@@ -522,6 +524,7 @@ short		i,z,m;
 				/* ADD THE SCORE */
 
 gotit:
+	MR_EMIT("high_score", i + 1, newScore);
 
 	if (i != MAX_HIGH_SCORES-1)								// insert if not last, otherwise just tag to end
 		for (z = MAX_HIGH_SCORES-1; z > i; z--)
@@ -545,6 +548,7 @@ gotit:
 
 void ShowLastScore(void)
 {
+	MR_EMIT("score_shown", gScore, 0);
 	LoadShapeTable(":Shapes:highscore.shapes", GROUP_WIN);
 	EraseBackgroundBuffer();
 
@@ -601,6 +605,7 @@ ObjNode		*nameObj;
 						/* ENTER NAME */
 
 	SDL_StartTextInput(gSDLWindow);
+	MR_EMIT("name_entry", 1, 0);
 
 	do
 	{
@@ -675,6 +680,7 @@ ObjNode		*nameObj;
 
 exit:;
 
+	MR_EMIT("name_entry", 0, 0);
 	SDL_StopTextInput(gSDLWindow);
 	ZapShapeTable(GROUP_WIN);
 }
@@ -710,6 +716,21 @@ long		count;
 
 	iErr = FSClose(refNum);
 	GAME_ASSERT(iErr == noErr);
+	MR_EMIT_STR("file", "HighScores");
+	{
+		static char json[MAX_HIGH_SCORES * 48];
+		int n = SDL_snprintf(json, sizeof json, "[");
+		for (int k = 0; k < MAX_HIGH_SCORES; k++)
+		{
+			char name[MAX_NAME_LENGTH + 1];
+			SDL_strlcpy(name, HighScoreNames[k], sizeof name);
+			for (char* p = name; *p; p++)				// keep the JSON valid whatever was typed
+				if (*p == '"' || *p == '\\') *p = '\'';
+			n += SDL_snprintf(json + n, sizeof json - n, "%s{\"name\":\"%s\",\"score\":%d}", k ? "," : "", name, (int) HighScoreList[k]);
+		}
+		SDL_snprintf(json + n, sizeof json - n, "]");
+		MR_EMIT_STR("scores", json);
+	}
 }
 
 
@@ -873,6 +894,7 @@ long		restoreMode;
 
 	batteryObj2->AnimFlag = false;
 	batteryObj->AnimFlag = false;
+	MR_EMIT("players", gPlayerMode == TWO_PLAYER ? 2 : 1, 0);
 
 			/*************************/
 			/* DO SAVED GAME RESTORE */
@@ -1125,6 +1147,7 @@ short	lineCount;
 
 void DoCredits(void)
 {
+	MR_EMIT("credits", 0, 0);
 	FadeOutGameCLUT();
 	PlaySong(SONG_ID_RACE);
 	DoScrollingTextScreen(":Images:credits1.tga", ":System:credits.txt", 0x8000L, 95);
@@ -1311,6 +1334,7 @@ short	counter,i;
 
 void DoLoseScreen(void)
 {
+	MR_EMIT("game_over", gScore, 0);
 	InitObjectManager();					// (needed for WaitWhileMusic)
 
 	FadeOutGameCLUT();											// fade out old screen
@@ -1330,6 +1354,7 @@ void DoLoseScreen(void)
 void DoWinScreen(void)
 {
 	bool easyWin = gDifficultySetting == DIFFICULTY_EASY;
+	MR_EMIT("win", gDifficultySetting, gScore);
 
 
 					/* WIN TEXT SCREEN */
@@ -1542,6 +1567,7 @@ static	short	xCoords[] = {105,319,540};
 				/* HANDLE SELECTION */
 
 	gGamePrefs.difficulty = mode;
+	MR_EMIT("difficulty", mode, 0);
 
 	FadeOutGameCLUT();
 	ZapShapeTable(GROUP_MAIN);
@@ -1642,6 +1668,8 @@ void ShowBonusScreen(void)
 short	i,htab,vtab;
 long	bonus;
 short	selection;
+
+	MR_EMIT("bonus", gBunnyCounts[gSceneNum][gAreaNum], gNumCoins > 300 ? 300 : gNumCoins);
 
 	ZapShapeTable(GROUP_AREA_SPECIFIC);							// minor cleanup first
 	ZapShapeTable(GROUP_AREA_SPECIFIC2);

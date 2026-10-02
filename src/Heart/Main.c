@@ -31,6 +31,7 @@
 #include "externs.h"
 #include "framebufferfilter.h"
 #include <SDL3/SDL.h>
+#include <string.h>
 #include "MRBridge.h"
 
 /****************************/
@@ -157,6 +158,7 @@ void InitGame(void)
 			pixelData += fh->width;						// next row
 		}
 	}
+	MR_EMIT("game_start", gDifficultySetting, gLoadOldGameFlag ? 1 : 0);
 }
 
 
@@ -165,6 +167,7 @@ void InitGame(void)
 
 void InitArea(void)
 {
+	MR_EMIT("area_start", gSceneNum, gAreaNum);
 	FadeOutGameCLUT();
 
 	OptimizeMemory();
@@ -359,6 +362,7 @@ static void UpdateSimAndRenderTweenedFrames(void)
 
 void PlayArea(void)
 {
+	MR_EMIT("attempt", gSceneNum, gAreaNum);
 	MyRandomLong();
 
 	gIsInGame = true;
@@ -896,6 +900,7 @@ SaveGameFile	saveGame;
 	iErr = FSClose(fRefNum);
 	if (iErr != noErr)
 		DoAlert("Cannot Close Player Save File.  Disk may be locked or full.");
+	MR_EMIT("saved", gameNum, 0); MR_EMIT_STR("file", strrchr(gPlayerMode == ONE_PLAYER ? gSaveName : gSaveName2x, ':') + 1);
 }
 
 
@@ -953,6 +958,7 @@ SaveGameFile	saveGame;
 
 	if (0 != strncmp(saveGame.magic, SAVEGAMEFILE_MAGIC, sizeof(saveGame.magic)))
 		GAME_ASSERT_MESSAGE(false, "Save File has incorrect magic header.");
+	MR_EMIT("loaded", gameNum, 0);
 
 	_Static_assert(sizeof(gMyWeapons) == sizeof(saveGame.myWeapons), "size mismatch: weapons on disk vs in memory");
 
@@ -1035,6 +1041,7 @@ retry_area:	PlayArea();											// PLAY IT
 			{
 							/* HANDLE DEATH */
 
+				MR_EMIT("life_lost", gNumLives - 1, 0);
 				if (--gNumLives)								// see if got another life
 				{
 					SetScreenOffsetForArea();
@@ -1161,6 +1168,7 @@ again:
 					/* DO  DEATH */
 					/*************/
 me_dead:
+	MR_EMIT("life_lost", gNumLives - 1, 0);
 	if (--gNumLives)											// see if got another dude
 	{
 		ReviveMe();
@@ -1379,6 +1387,7 @@ long				count;
 	count = sizeof(PrefsType);
 	FSWrite(refNum, &count, (Ptr)&gGamePrefs);
 	FSClose(refNum);
+	MR_EMIT_STR("file", "Prefs");
 }
 
 

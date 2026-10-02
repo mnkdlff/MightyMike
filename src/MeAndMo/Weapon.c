@@ -25,6 +25,7 @@
 #include "collision.h"
 #include "input.h"
 #include "externs.h"
+#include "MRBridge.h"
 
 /****************************/
 /*    CONSTANTS             */
@@ -193,6 +194,7 @@ void GetAWeapon(short weaponType)
 Byte	i;
 
 	PlaySound(SOUND_GETWEAPON);
+	MR_EMIT("weapon", weaponType, 0);
 
 	if (!(MyRandomLong()&0b111))
 		MakeMikeMessage(MESSAGE_NUM_NICEGUY);

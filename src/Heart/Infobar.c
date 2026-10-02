@@ -22,6 +22,7 @@
 #include "input.h"
 #include "structures.h"
 #include "externs.h"
+#include "MRBridge.h"
 
 /****************************/
 /*    CONSTANTS             */
@@ -175,6 +176,7 @@ void GiveMeHealth(void)
 		return;
 
 	gMyHealth++;
+	MR_EMIT("heart", gMyHealth, 0);
 
 	ShowHealth();
 }
@@ -393,7 +395,10 @@ long	num,x,y;
 
 void GetCoins(short amount)
 {
+	short coinsBefore = gNumCoins;
 	gNumCoins += amount;
+	if (gNumCoins / 50 != coinsBefore / 50)
+		MR_EMIT("coins", gNumCoins, 0);
 	gUpdateCoins = true;
 
 //	if ((gNumCoins >= COINS_FOR_HEALTH) && (gMyMaxHealth < MAX_HEARTS))	// see if increase health max
@@ -546,12 +551,14 @@ void ShowPaused(void)
 	}
 
 	gIsGamePaused = true;
+	MR_EMIT("pause", 1, 0);
 
 	while (GetNeedState(kNeed_UIPause));
 	while (!GetNeedState(kNeed_UIPause));
 	while (GetNeedState(kNeed_UIPause));
 	EraseStore();
 
+	MR_EMIT("pause", 0, 0);
 	gIsGamePaused = false;
 }
 
@@ -580,6 +587,7 @@ const int	quitY = gGamePrefs.pfSize == PFSIZE_SMALL ? 220 : ((VISIBLE_HEIGHT-64)
 	UpdateInput();
 
 	gIsGamePaused = true;
+	MR_EMIT("pause", 1, 0);
 
 	while (!GetNewNeedState(kNeed_UIConfirm))
 	{
@@ -624,6 +632,9 @@ const int	quitY = gGamePrefs.pfSize == PFSIZE_SMALL ? 220 : ((VISIBLE_HEIGHT-64)
 	}
 
 	gIsGamePaused = false;
+	MR_EMIT("pause", 0, 0);
+	if (!selection)
+		MR_EMIT("quit_game", gScore, 0);
 
 	EraseStore();
 

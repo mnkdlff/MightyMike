@@ -27,6 +27,7 @@
 #include "collision.h"
 #include "input.h"
 #include "externs.h"
+#include "MRBridge.h"
 
 /****************************/
 /*    CONSTANTS             */
@@ -529,7 +530,11 @@ void MoveMe_Liftoff(void)
 		gThisNodePtr->YOffset.L -= 0x30000L;				// move it up
 
 		if (gThisNodePtr->YOffset.Int < -340)				// see if off screen
+		{
+			if (!gFinishedArea)
+				MR_EMIT("area_done", gSceneNum, gAreaNum);
 			gFinishedArea = true;							// end level
+		}
 	}
 }
 
@@ -1254,6 +1259,7 @@ void MeHitBonusObject(ObjNode *targetNode)
 	if (targetNode->CType & CTYPE_KEY)
 	{
 		gMyKeys[targetNode->SubType] = true;			// get the key
+		MR_EMIT("key", targetNode->SubType, 0);
 
 		targetNode->ItemIndex = nil;				// wont be comin back
 		DeleteObject(targetNode);
