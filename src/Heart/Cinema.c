@@ -26,6 +26,7 @@
 #include "externs.h"
 #include "weapon.h"
 #include "font.h"
+#include "MRBridge.h"
 
 static void DoDifficultyScreen(void);
 
@@ -170,6 +171,7 @@ re_enter:
 //			return;
 //		}
 
+#if !MR_WEB
 		if (GetSDLKeyState(SDL_SCANCODE_R) && GetSDLKeyState(SDL_SCANCODE_E))	// see if record demo
 		{
 			gPlayerMode = ONE_PLAYER;
@@ -177,9 +179,11 @@ re_enter:
 			StartRecordingDemo();
 			return;
 		}
+#endif
 
 					/* CHECK FOR SCENE CHEATS */
 
+#if !MR_WEB
 		if (SDL_GetMouseState(nil, nil))			// mouse button down
 		{
 			for (i = 1; i <= 5; i++)
@@ -202,6 +206,7 @@ re_enter:
 				}
 			}
 		}
+#endif
 
 		if (gCursorMode != CURSOR_MODE_READY)
 			continue;
@@ -874,6 +879,14 @@ long		restoreMode;
 			/*************************/
 
 	restoreMode = 0;
+#if MR_WEB
+	if (gMR.loadSlot >= 0)							// MiReina: the vestíbulo chose (0 new game, 1..4 restore)
+	{
+		restoreMode = gMR.loadSlot;
+		gMR.loadSlot = -1;
+		goto restore_chosen;
+	}
+#endif
 	MakeNewShape(GroupNum_SaveGame,ObjType_SaveGame,0,320,450,100,nil,SCREEN_RELATIVE);	// put game restore dialog icon
 	cursorObj = MakeNewShape(GroupNum_SaveGame,ObjType_SaveGame,1,
 							sgcursorx[restoreMode],450,50,nil,SCREEN_RELATIVE);	// make cursor
@@ -938,7 +951,10 @@ long		restoreMode;
 
 	} while(!GetNewNeedState(kNeed_UIConfirm) && !gAbortDemoFlag);
 
-	
+#if MR_WEB
+restore_chosen:
+#endif
+
 				/* SEE IF RESTORE GAME */
 
 	if (restoreMode > 0)
@@ -1730,6 +1746,9 @@ short	selection;
 
 	PresentIndexedFramebuffer();
 	Wait4(60*1);
+#if MR_WEB
+	selection = 1;											// MiReina: always slot 1, no dialog (the page mirrors the file)
+#else
 	while(UserWantsOutContinuous())						// wait for button & key up
 	{
 		Wait(10);
@@ -1800,6 +1819,7 @@ short	selection;
 		}
 
 	}
+#endif
 
 	if (selection > 0)												// see if save a game
 	{

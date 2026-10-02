@@ -99,8 +99,11 @@ Str255		numStr;
 void DoAlert(const char* s)
 {
 	SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Game Alert: %s", s);
-
+#if MR_WEB
+	MR_EMIT_STR("alert", s);
+#else
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, GAME_FULL_NAME, s, NULL);
+#endif
 }
 
 
@@ -111,7 +114,11 @@ void DoAssert(const char* msg, const char* file, int line)
 	SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Game Assertion failed: %s - %s:%d\n", msg, file, line);
 	static char alertbuf[1024];
 	SDL_snprintf(alertbuf, 1024, "%s\n%s:%d", msg, file, line);
+#if MR_WEB
+	MR_EMIT_STR("fatal", alertbuf);
+#else
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, GAME_FULL_NAME ": Assertion Failed!", alertbuf, NULL);
+#endif
 	ExitToShell();
 }
 
@@ -121,8 +128,11 @@ void DoAssert(const char* msg, const char* file, int line)
 void DoFatalAlert(const char* s)
 {
 	SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Game Fatal Alert: %s", s);
-
+#if MR_WEB
+	MR_EMIT_STR("fatal", s);
+#else
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, GAME_FULL_NAME, s, NULL);
+#endif
 	CleanQuit();
 }
 
@@ -134,8 +144,11 @@ void DoFatalAlert2(const char* s1, const char* s2)
 	static char alertbuf[1024];
 	SDL_snprintf(alertbuf, 1024, "%s\n%s", s1, s2);
 	SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Game Fatal Alert: %s", alertbuf);
-
+#if MR_WEB
+	MR_EMIT_STR("fatal", alertbuf);
+#else
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, GAME_FULL_NAME, alertbuf, NULL);
+#endif
 	CleanQuit();
 }
 

@@ -96,7 +96,7 @@ static void Boot(int argc, char** argv)
 
 #if MR_WEB
 	SDL_SetHint(SDL_HINT_EMSCRIPTEN_CANVAS_SELECTOR, "#pp-canvas");
-	SDL_SetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT, "#canvas");		// keyboard only while the canvas has focus
+	SDL_SetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT, "#pp-canvas");		// keyboard only while the canvas has focus
 #endif
 
 	// Initialize SDL video subsystem
@@ -110,7 +110,11 @@ static void Boot(int argc, char** argv)
 #endif // GLRENDER
 
 	// Create window
+#if MR_WEB
+	int windowFlags = SDL_WINDOW_HIGH_PIXEL_DENSITY;					// fixed-size canvas; the page scales it with CSS
+#else
 	int windowFlags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY;
+#endif
 #if GLRENDER
 	windowFlags |= SDL_WINDOW_OPENGL;
 #endif

@@ -31,6 +31,7 @@
 #include "externs.h"
 #include "framebufferfilter.h"
 #include <SDL3/SDL.h>
+#include "MRBridge.h"
 
 /****************************/
 /*    CONSTANTS             */
@@ -389,11 +390,13 @@ void PlayArea(void)
 				PauseAllChannels(false);
 		}
 
+#if !MR_WEB
 		if (GetSDLKeyState(SDL_SCANCODE_PERIOD) && GetSDLKeyState(SDL_SCANCODE_N))	// see if skip to next level
 		{
 			gNumBunnies = 1;
 			DecBunnyCount();
 		}
+#endif
 
 		if (gNumBunnies <= 0)					// special hack to fix reported bug!?!?
 			DecBunnyCount();
@@ -1274,6 +1277,14 @@ static void InitDefaultPrefs(void)
 	gGamePrefs.thermometerScreen = false;
 	gGamePrefs.debugInfoInTitleBar = false;
 	gGamePrefs.colorCorrection = true;
+#if MR_WEB
+	gGamePrefs.difficulty = DIFFICULTY_EASY;	// La Reina's first game
+	gGamePrefs.gameTitlePowerPete = true;		// the 1995 title she knew
+	gGamePrefs.filterDithering = false;			// cheaper per-frame conversion on the main thread
+	gGamePrefs.displayMode = kDisplayMode_Windowed;	// MiReina: ApplyPrefs()'s SetFullscreenMode() would otherwise
+														// SDL_SetWindowFullscreen() on boot and stretch the canvas to
+														// the screen's size; the page scales the fixed canvas with CSS
+#endif
 	SDL_memcpy(gGamePrefs.keys, kDefaultKeyBindings, sizeof(kDefaultKeyBindings));
 }
 

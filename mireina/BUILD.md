@@ -62,6 +62,18 @@ play audio, which exempts the tab from throttling) when timing anything.
   Added `(void) showMessage;` under `#if MR_WEB` at the top of the function to keep the build
   warning-free; native behavior is unchanged.
 
+- **`src/Heart/SettingsScreen.c`**: hiding the `"display mode"` and `"titlebar debug"` cycler
+  entries on the web (Task 4) left `OnChangeFullscreenMode` and `OnChangeDebugInfoInTitleBar`
+  unused there, which `-Wunused-function` flagged. Wrapped both declarations and definitions in
+  `#if !MR_WEB` to keep the build warning-free; native behavior is unchanged.
+
+- **`src/Boot.cpp`, window creation**: `SDL_WINDOW_RESIZABLE` is dropped on the web (Task 4) so SDL
+  stops stretching the canvas to the browser window — the page scales the fixed 832×480 canvas
+  itself with CSS.
+- **`src/Boot.cpp`, keyboard hint**: SDL 3.2.2 passes `SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT`
+  straight through to Emscripten as an event target string, not a DOM id, so it is set to the CSS
+  selector `"#pp-canvas"` (not `"#canvas"`).
+
 Otherwise none. The unmodified engine and Pomme compiled under Emscripten 6.0.10 without a single
 source fix beyond the four guarded patches listed above.
 

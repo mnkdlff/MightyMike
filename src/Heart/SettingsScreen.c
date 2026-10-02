@@ -22,6 +22,7 @@
 #include "externs.h"
 #include "font.h"
 #include "version.h"
+#include "MRBridge.h"
 #include <SDL3/SDL.h>
 #include <ctype.h>
 
@@ -83,9 +84,13 @@ static void DeleteTextAtRowCol(int row, int col);
 static const char* GetKeyBindingName(int row, int col);
 static const char* GetPadBindingName(int row, int col);
 static void OnDone(void);
+#if !MR_WEB
 static void OnChangeFullscreenMode(void);
+#endif
 static void OnChangePlayfieldSizeViaSettings(void);
+#if !MR_WEB
 static void OnChangeDebugInfoInTitleBar(void);
+#endif
 static void OnResetKeys(void);
 static void OnResetGamepad(void);
 static void LayOutMenu(MenuItem* menu);
@@ -147,6 +152,7 @@ static MenuItem gVideoMenu[] =
 		}
 	},
 	{ .type = kMenuItem_Separator },
+#if !MR_WEB
 	{
 		.type = kMenuItem_Cycler, .cycler =
 		{
@@ -157,7 +163,9 @@ static MenuItem gVideoMenu[] =
 			.choices = {"windowed", "fullscreen, crisp", "fullscreen, stretched"},
 		},
 	},
+#endif
 
+#if !MR_WEB
 	{
 		.type = kMenuItem_Cycler, .cycler =
 		{
@@ -186,7 +194,9 @@ static MenuItem gVideoMenu[] =
 			},
 		}
 	},
+#endif
 
+#if !MR_WEB
 	{
 		.type = kMenuItem_Cycler, .cycler =
 		{
@@ -215,6 +225,7 @@ static MenuItem gVideoMenu[] =
 			},
 		}
 	},
+#endif
 
 	{ .type = kMenuItem_Separator },
 
@@ -311,6 +322,7 @@ static MenuItem gPresentationMenu[] =
 			.choices = { "instantaneous", "charging batteries" },
 		}
 	},
+#if !MR_WEB
 	{
 		.type = kMenuItem_Cycler, .cycler =
 		{
@@ -321,6 +333,7 @@ static MenuItem gPresentationMenu[] =
 			.choices = { "no", "yes" },
 		}
 	},
+#endif
 	{ .type = kMenuItem_Action, .button = { .caption = "done", .callback = OnDone } },
 	{ .type = kMenuItem_END_SENTINEL },
 };
@@ -483,6 +496,7 @@ static void RemapRedToGray(int row)
 
 static void OnMenuEntered(void)
 {
+#if !MR_WEB
 	if (gMenu == gVideoMenu)
 	{
 		{
@@ -505,6 +519,7 @@ static void OnMenuEntered(void)
 			gMenu[row].cycler.numChoices = numDisplays;
 		}
 	}
+#endif
 }
 
 /****************************/
@@ -545,10 +560,12 @@ static void OnDone(void)
 	}
 }
 
+#if !MR_WEB
 static void OnChangeFullscreenMode(void)
 {
 	SetFullscreenMode(true);
 }
+#endif
 
 static void OnChangePlayfieldSizeViaSettings(void)
 {
@@ -560,10 +577,12 @@ static void OnChangePlayfieldSizeViaSettings(void)
 	LayOutMenu(gMenu);//LayOutSettingsPageBackground();
 }
 
+#if !MR_WEB
 static void OnChangeDebugInfoInTitleBar(void)
 {
 	SDL_SetWindowTitle(gSDLWindow, GAME_FULL_NAME " " GAME_VERSION);
 }
+#endif
 
 static void OnResetKeys(void)
 {
@@ -1269,6 +1288,8 @@ static void DrawDitheringPattern(void)
 
 void DoSettingsScreen(void)
 {
+	MR_EMIT("settings", 0, 0);
+
 					/* INITIAL LOADING */
 
 	FadeOutGameCLUT();
