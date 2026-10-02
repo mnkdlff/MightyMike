@@ -15,6 +15,7 @@ extern "C"
 	#include "renderdrivers.h"
 	#include "framebufferfilter.h"
 	#include "version.h"
+	#include "MRBridge.h"
 
 	SDL_Window* gSDLWindow = nullptr;
 	FSSpec gDataSpec;
@@ -166,6 +167,7 @@ int main(int argc, char** argv)
 	try
 	{
 		Boot(argc, argv);
+		MR_Boot();
 		GameMain();
 	}
 	catch (Pomme::QuitRequest&)

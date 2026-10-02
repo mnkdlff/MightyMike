@@ -22,6 +22,7 @@
 #include "cinema.h"
 #include "externs.h"
 #include "main.h"
+#include "MRBridge.h"
 
 /****************************/
 /*    PROTOTYPES             */
@@ -144,6 +145,9 @@ void DoFatalAlert2(const char* s1, const char* s2)
 void CleanQuit(void)
 {
 static Boolean beenHereFlag = false;
+
+	if (!beenHereFlag)
+		MR_EMIT("exit", 0, 0);
 
 //	DisposeHandle(gShapeTableHandle[0]);			// zap this if it exists
 
