@@ -57,8 +57,13 @@ play audio, which exempts the tab from throttling) when timing anything.
 
 ## Known fixes
 
-None. The unmodified engine and Pomme compiled under Emscripten 6.0.10 without a single source
-fix beyond the four guarded patches listed above.
+- **`src/Heart/Input.c`, `TryOpenGamepad`**: wrapping the `showMessage` message-box block in
+  `#if !MR_WEB` (Task 3) left `showMessage` unused on the web, which `-Wunused-parameter` flagged.
+  Added `(void) showMessage;` under `#if MR_WEB` at the top of the function to keep the build
+  warning-free; native behavior is unchanged.
+
+Otherwise none. The unmodified engine and Pomme compiled under Emscripten 6.0.10 without a single
+source fix beyond the four guarded patches listed above.
 
 Notes on the toolchain, for the record:
 

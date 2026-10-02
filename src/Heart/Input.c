@@ -19,6 +19,7 @@
 #include "window.h"
 #include "structures.h"
 #include "externs.h"
+#include "MRBridge.h"
 
 /**********************/
 /*     PROTOTYPES     */
@@ -98,6 +99,7 @@ void UpdateInput(void)
 
 	gTextInput[0] = '\0';
 
+	MR_Tick();						// MiReina: pulses, audio, exit (no-op natively)
 
 	/**********************/
 	/* DO SDL MAINTENANCE */
@@ -161,6 +163,20 @@ void UpdateInput(void)
 		for (int i = minNumKeys; i < SDL_SCANCODE_COUNT; i++)
 		{
 			UpdateKeyState(&gRawKeyboardState[i], false);
+		}
+	}
+
+	// --------------------------------------------
+	// MiReina: the page stands in for Return / Backspace (name entry) and types one character per frame
+
+	if (MR_Pulsed(MR_PULSE_ENTER))		gRawKeyboardState[SDL_SCANCODE_RETURN]    = KEYSTATE_DOWN;
+	if (MR_Pulsed(MR_PULSE_BACKSPACE))	gRawKeyboardState[SDL_SCANCODE_BACKSPACE] = KEYSTATE_DOWN;
+	{
+		char typed = MR_TakeTextChar();
+		if (typed)
+		{
+			gTextInput[0] = typed;
+			gTextInput[1] = '\0';
 		}
 	}
 
@@ -232,6 +248,8 @@ void UpdateInput(void)
 				}
 			}
 		}
+
+		downNow |= MR_NeedDown(i);			// MiReina virtual device
 
 		UpdateKeyState(&gNeedStates[i], downNow);
 	}
@@ -330,6 +348,10 @@ bool IsCmdQPressed(void)
 
 SDL_Gamepad* TryOpenGamepad(bool showMessage)
 {
+#if MR_WEB
+	(void) showMessage;		// MiReina: no message box in the browser build
+#endif
+
 	if (gSDLGamepad)
 	{
 		SDL_Log("Already have a valid gamepad.");
@@ -361,6 +383,7 @@ SDL_Gamepad* TryOpenGamepad(bool showMessage)
 	if (!gSDLGamepad)
 	{
 		SDL_Log("Joystick(s) found, but none is suitable as an SDL_Gamepad.");
+#if !MR_WEB
 		if (showMessage)
 		{
 			char messageBuf[1024];
@@ -374,6 +397,7 @@ SDL_Gamepad* TryOpenGamepad(bool showMessage)
 				messageBuf,
 				gSDLWindow);
 		}
+#endif
 		return NULL;
 	}
 
@@ -415,9 +439,9 @@ static void OnJoystickRemoved(SDL_JoystickID which)
 
 int32_t GetLeftStickMagnitude_Fix32(void)
 {
-	if (!gSDLGamepad)
+	if (MR_VirtualActive() || !gSDLGamepad)
 	{
-		return 0;
+		return MR_LeftMagnitude_Fix32();		// 0 when nothing virtual is held either
 	}
 
 	int dxRaw = (int) SDL_GetGamepadAxis(gSDLGamepad, SDL_GAMEPAD_AXIS_LEFTX);
@@ -435,9 +459,9 @@ int32_t GetLeftStickMagnitude_Fix32(void)
 
 short GetRightStick8WayAim(void)
 {
-	if (!gSDLGamepad)
+	if (MR_VirtualActive() || !gSDLGamepad)
 	{
-		return AIM_NONE;
+		return MR_RightAim();
 	}
 
 	int dxRaw = (int) SDL_GetGamepadAxis(gSDLGamepad, SDL_GAMEPAD_AXIS_RIGHTX);
