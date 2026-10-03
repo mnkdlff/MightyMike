@@ -560,9 +560,13 @@ void ShowLastScore(void)
 
 					/* DISPLAY SCORE */
 
+#if MR_WEB
+	gHtab = 640/2 - (17*FONT_WIDTH)/2;					// "SCORE DE LA REINA": 17 letters, centred like "SCORE" was
+#else
 	gHtab = 640/2-50;
+#endif
 	gVtab = 480/2-50;
-	WriteLn("SCORE");
+	WriteLn(MR_TXT("SCORE DE LA REINA", "SCORE"));
 
 	gHtab = 250;
 	gVtab = 480/2;

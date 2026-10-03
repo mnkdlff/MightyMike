@@ -32,6 +32,13 @@ int32_t MR_LeftMagnitude_Fix32(void);	// same scale as GetLeftStickMagnitude_Fix
 short   MR_RightAim(void);				// AIM_* or AIM_NONE
 char    MR_TakeTextChar(void);			// the typed char, then 0
 
+// Web-edition strings: La Reina's texts on the web build, the originals natively (same shape, same length rules).
+#if MR_WEB
+#define MR_TXT(web, native)		web
+#else
+#define MR_TXT(web, native)		native
+#endif
+
 #if MR_WEB
 void MR_Emit(const char* kind, int a, int b);
 void MR_EmitStr(const char* kind, const char* s);

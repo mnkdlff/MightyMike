@@ -313,7 +313,7 @@ static MenuItem gPresentationMenu[] =
 			.callback = nil,
 			.valuePtr = &gGamePrefs.gameTitlePowerPete,
 			.numChoices = 2,
-			.choices = { "mighty mike", "power pete" },
+			.choices = { "mighty mike", MR_TXT("power reina", "power pete") },	// the web default (index 1) is La Reina's title
 		}
 	},
 	{
@@ -387,10 +387,10 @@ static MenuItem gRootMenu[] =
 {
 	{ .type = kMenuItem_Label, .label = " SETTINGS", },
 	{ .type = kMenuItem_Separator },
-	{ .type = kMenuItem_Submenu, .submenu = {.caption = "configure keyboard",	.menu = gKeyboardMenu} },
-	{ .type = kMenuItem_Submenu, .submenu = {.caption = "configure gamepad",	.menu = gGamepadMenu} },
-	{ .type = kMenuItem_Submenu, .submenu = {.caption = "video",				.menu = gVideoMenu} },
-	{ .type = kMenuItem_Submenu, .submenu = {.caption = "audio",				.menu = gAudioMenu} },
+	{ .type = kMenuItem_Submenu, .submenu = {.caption = MR_TXT("teclado de la reina", "configure keyboard"),	.menu = gKeyboardMenu} },
+	{ .type = kMenuItem_Submenu, .submenu = {.caption = MR_TXT("gamepad de la reina", "configure gamepad"),	.menu = gGamepadMenu} },
+	{ .type = kMenuItem_Submenu, .submenu = {.caption = MR_TXT("video de la reina", "video"),			.menu = gVideoMenu} },
+	{ .type = kMenuItem_Submenu, .submenu = {.caption = MR_TXT("audio de la reina", "audio"),			.menu = gAudioMenu} },
 	{ .type = kMenuItem_Submenu, .submenu = {.caption = "presentation",			.menu = gPresentationMenu} },
 	{ .type = kMenuItem_Separator },
 	{ .type = kMenuItem_Action, .button = {.caption = "done", .callback = OnDone} },

@@ -187,3 +187,14 @@ file name:
 - `PowerPeteSavedGameData1` .. `PowerPeteSavedGameData4` (one-player save slots)
 - `PowerPeteSavedGameData2x<p><g>` (two-player save slots, `<p>` = player, `<g>` = game number)
 - `PeteP1Swap.data`, `PeteP2Swap.data`
+
+## Texts (La Reina's edition)
+
+- `mireina/texts.json` is an export of the « Power Pete Textos » artifact (`{ itemId: text }`).
+- `node mireina/tools/texts.mjs` writes `Data/System/credits.txt`, `win1.txt` and (when present) `win3.txt` from it,
+  then validates every scrolling text against the font: A-Z, a-z, 0-9, `! ? . : @ ,` (the hyphen is tolerated,
+  the original credits carry `1995-2000`), 32 columns, a single closing `~`. `node mireina/tools/check-texts.mjs`
+  runs the validation alone; `node mireina/tools/test-texts.mjs` tests it.
+- Strings that live in the C sources use `MR_TXT(web, native)` from `src/Web/MRBridge.h`: the web build shows
+  La Reina's text, the native build the original. Today: the `SCORE DE LA REINA` label (`ShowLastScore`, centred
+  for its 17 letters) and the settings captions (`teclado / gamepad / video / audio de la reina`, `power reina`).
