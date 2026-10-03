@@ -91,8 +91,33 @@ play audio, which exempts the tab from throttling) when timing anything.
   Wrapped the whole `if (gMenu == gVideoMenu) { ... }` body in `#if !MR_WEB`, since those
   `numChoices` recalculations are meaningless on the web anyway; native behavior is unchanged.
 
+- **`src/Heart/SettingsScreen.c`, `"playfield size"`**: the row is wrapped in `#if !MR_WEB` — the
+  page hard-codes the 832×480 canvas, so letting a player cycle `gGamePrefs.pfSize` would resize
+  the playfield under a canvas that cannot follow. That left `OnChangePlayfieldSizeViaSettings`
+  unused on the web (its only other caller, the `"windowed zoom"` row, is already web-hidden), so
+  its declaration and definition are wrapped in `#if !MR_WEB` too, the same way
+  `OnChangeFullscreenMode` and `OnChangeDebugInfoInTitleBar` were; native behavior is unchanged.
+
+- **`src/Heart/Cinema.c`, `ChoosePlayerMode`**: the `#if MR_WEB` shortcut that jumps straight to
+  `restore_chosen` when the vestíbulo already chose a slot skips the save-game dialog loop, and
+  with it the `gLoadOldGameFlag = false;` that loop performed before polling. It now sets
+  `gLoadOldGameFlag = false;` explicitly before the `goto`, so a web run can never inherit a stale
+  true from an earlier game; native behavior is unchanged.
+
 Otherwise none. The unmodified engine and Pomme compiled under Emscripten 6.0.10 without a single
 source fix beyond the six guarded patches listed above.
+
+## Notes
+
+- The `pause` hooks in `src/Heart/Infobar.c:ShowPaused` are **dead code**: `ShowPaused`'s only
+  upstream caller is commented out, so the function never runs. The live emitter of the `pause`
+  event is `AskIfQuit` in the same file — that is what the page actually sees when a player presses
+  Esc.
+- The `alert` kind (non-fatal `DoAlert`) is distinct from `fatal` (`DoAssert`, `DoFatalAlert`,
+  `DoFatalAlert2`): an `alert` is informational and the engine keeps running, so the page only logs
+  it (`console.warn`) instead of tearing the stage down.
+- The `"playfield size"` row of Settings > Video is hidden on the web (see Known fixes above); the
+  page owns the 832×480 canvas size.
 
 Notes on the toolchain, for the record:
 

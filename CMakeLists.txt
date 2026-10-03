@@ -327,7 +327,6 @@ configure_file(${CMAKE_SOURCE_DIR}/packaging/ReadMe.txt.in ${CMAKE_CURRENT_BINAR
 #------------------------------------------------------------------------------
 
 if(EMSCRIPTEN)
-	target_include_directories(${GAME_TARGET} PRIVATE ${GAME_SRCDIR}/Web)
 	set_target_properties(${GAME_TARGET} PROPERTIES OUTPUT_NAME "pete" SUFFIX ".js")
 	target_link_options(${GAME_TARGET} PRIVATE
 		-sMODULARIZE=1

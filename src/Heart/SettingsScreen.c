@@ -87,7 +87,9 @@ static void OnDone(void);
 #if !MR_WEB
 static void OnChangeFullscreenMode(void);
 #endif
+#if !MR_WEB
 static void OnChangePlayfieldSizeViaSettings(void);
+#endif
 #if !MR_WEB
 static void OnChangeDebugInfoInTitleBar(void);
 #endif
@@ -131,6 +133,7 @@ static MenuItem gVideoMenu[] =
 {
 	{ .type = kMenuItem_Label, .label = " VIDEO   SETTINGS" },
 	{ .type = kMenuItem_Separator },
+#if !MR_WEB
 	{
 		.type = kMenuItem_Cycler, .cycler =
 		{
@@ -141,6 +144,7 @@ static MenuItem gVideoMenu[] =
 			.choices = { "small, 68k original", "medium, ppc original", "extended, widescreen" },
 		}
 	},
+#endif
 	{
 		.type = kMenuItem_Cycler, .cycler =
 		{
@@ -567,6 +571,7 @@ static void OnChangeFullscreenMode(void)
 }
 #endif
 
+#if !MR_WEB
 static void OnChangePlayfieldSizeViaSettings(void)
 {
 	gScreenBlankedFlag = true;
@@ -576,6 +581,7 @@ static void OnChangePlayfieldSizeViaSettings(void)
 	gScreenBlankedFlag = false;
 	LayOutMenu(gMenu);//LayOutSettingsPageBackground();
 }
+#endif
 
 #if !MR_WEB
 static void OnChangeDebugInfoInTitleBar(void)

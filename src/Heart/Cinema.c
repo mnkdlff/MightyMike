@@ -906,6 +906,7 @@ long		restoreMode;
 	{
 		restoreMode = gMR.loadSlot;
 		gMR.loadSlot = -1;
+		gLoadOldGameFlag = false;					// the skipped dialog loop would have cleared it
 		goto restore_chosen;
 	}
 #endif

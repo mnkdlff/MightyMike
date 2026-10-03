@@ -15,7 +15,14 @@ command -v cmake >/dev/null || { echo "cmake not found: brew install cmake" >&2;
 if [ ! -f "$SDL_INSTALL/lib/cmake/SDL3/SDL3Config.cmake" ]; then
   mkdir -p "$LIBS"
   if [ ! -d "$SDL_SRC" ]; then
-    curl -fsSL "https://libsdl.org/release/SDL3-$SDL_VER.tar.gz" | tar xz -C "$LIBS"
+    # extract into a temporary tree and move it into place only once tar succeeded, so a failed
+    # download never leaves a half tree that the [ ! -d "$SDL_SRC" ] guard above would accept
+    SDL_TMP="$(mktemp -d "$LIBS/SDL3-$SDL_VER.tmp.XXXXXX")"
+    trap 'rm -rf "$SDL_TMP"' EXIT
+    curl -fsSL "https://libsdl.org/release/SDL3-$SDL_VER.tar.gz" | tar xz -C "$SDL_TMP"
+    mv "$SDL_TMP/SDL3-$SDL_VER" "$SDL_SRC"
+    rm -rf "$SDL_TMP"
+    trap - EXIT
   fi
   emcmake cmake -S "$SDL_SRC" -B "$SDL_SRC/build-wasm" \
     -DCMAKE_BUILD_TYPE=Release -DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_TEST_LIBRARY=OFF \

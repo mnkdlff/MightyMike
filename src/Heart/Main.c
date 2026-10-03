@@ -1290,8 +1290,8 @@ static void InitDefaultPrefs(void)
 	gGamePrefs.gameTitlePowerPete = true;		// the 1995 title she knew
 	gGamePrefs.filterDithering = false;			// cheaper per-frame conversion on the main thread
 	gGamePrefs.displayMode = kDisplayMode_Windowed;	// MiReina: ApplyPrefs()'s SetFullscreenMode() would otherwise
-														// SDL_SetWindowFullscreen() on boot and stretch the canvas to
-														// the screen's size; the page scales the fixed canvas with CSS
+													// SDL_SetWindowFullscreen() on boot and stretch the canvas to
+													// the screen's size; the page scales the fixed canvas with CSS
 #endif
 	SDL_memcpy(gGamePrefs.keys, kDefaultKeyBindings, sizeof(kDefaultKeyBindings));
 }
