@@ -188,6 +188,18 @@ file name:
 - `PowerPeteSavedGameData2x<p><g>` (two-player save slots, `<p>` = player, `<g>` = game number)
 - `PeteP1Swap.data`, `PeteP2Swap.data`
 
+## Persistence (MiReina)
+
+MiReina mirrors the game files in Supabase. On every `file` event the page reads the named file from
+`/home/web_user/.config/MightyMike/` through `Module.FS.readFile` (the page never calls into the engine)
+and stores it base64 in `level_answers` as `file:<name>`; before the next boot it writes every stored file
+back in `preRun`, so Prefs, HighScores and the save travel across devices. Only names matching
+`Prefs | HighScores | PowerPeteSavedGameData[1-4] | PowerPeteSavedGameData2x<p><g> | PeteP[12]Swap.data`
+are accepted, each at most 64 KiB. The web build saves into slot 1 only; the page offers « Continuar »
+when `PowerPeteSavedGameData1` exists and asks for that slot through `loadSlot`. The counters of the
+vestíbulo (sessions, bunnies, deaths, areas, worlds, weapons, best score, play time) are reduced from the
+events table above; nothing here changes the engine.
+
 ## Texts (La Reina's edition)
 
 - `mireina/texts.json` is an export of the « Power Pete Textos » artifact (`{ itemId: text }`).
