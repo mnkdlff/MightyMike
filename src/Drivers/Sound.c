@@ -235,6 +235,12 @@ long		offset;
 	if (!gGamePrefs.music)								// see if music activated
 		return;
 
+	if (SoundHand_Music == nil)							// no song loaded yet (the web page toggles music before the first song):
+	{													// nothing to start; the next PlaySong will honour the preference
+		gSongPlayingFlag = false;
+		return;
+	}
+
 	GetSoundHeaderOffset(SoundHand_Music, &offset);		// get offset to header
 
 	mySndCmd.cmd = soundCmd;							// install sample in the channel

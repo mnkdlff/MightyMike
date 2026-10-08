@@ -334,6 +334,7 @@ if(EMSCRIPTEN)
 		-sENVIRONMENT=web
 		-sASYNCIFY=1                      # the 1995 loops block; SDL_Delay yields through emscripten_sleep
 		-sASYNCIFY_STACK_SIZE=65536
+		--profiling-funcs                 # function names in the wasm: a crash in the page names its frames
 		-sALLOW_MEMORY_GROWTH=1
 		-sINITIAL_MEMORY=67108864
 		-sMAXIMUM_MEMORY=536870912

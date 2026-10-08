@@ -107,6 +107,12 @@ play audio, which exempts the tab from throttling) when timing anything.
 Otherwise none. The unmodified engine and Pomme compiled under Emscripten 6.0.10 without a single
 source fix beyond the six guarded patches listed above.
 
+- **Music toggled before the first song crashed the web build.** The page pushes its audio flags right after
+  `boot` (`audioDirty`), and `MR_Tick` applies them through `OnToggleMusic` → `StartMusic`, which read the song
+  handle while `SoundHand_Music` was still nil (the legal screen has no song): `GetHandleSize(nil)` trapped with
+  « memory access out of bounds ». `StartMusic` now returns when no song is loaded; the next `PlaySong` honours
+  the preference. The link also keeps function names (`--profiling-funcs`) so a trap in the page names its frames.
+
 ## Notes
 
 - The `pause` hooks in `src/Heart/Infobar.c:ShowPaused` are **dead code**: `ShowPaused`'s only
