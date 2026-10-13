@@ -57,6 +57,11 @@ play audio, which exempts the tab from throttling) when timing anything.
 
 ## Known fixes
 
+- **`CMakeLists.txt`, Emscripten block**: `--preload-file` packs `Data/` at link time, but CMake
+  did not know the link depended on those files, so a build after an image/text/voice change
+  reused the old `pete.data` (same build hash as before: the giveaway). The target now lists every
+  file under `Data/` as a `LINK_DEPENDS`, so any change there relinks and repacks.
+
 - **`src/Heart/Input.c`, `TryOpenGamepad`**: wrapping the `showMessage` message-box block in
   `#if !MR_WEB` (Task 3) left `showMessage` unused on the web, which `-Wunused-parameter` flagged.
   Added `(void) showMessage;` under `#if MR_WEB` at the top of the function to keep the build

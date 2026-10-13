@@ -355,4 +355,8 @@ if(EMSCRIPTEN)
 		"--exclude-file=*view68k.tga"
 		"--exclude-file=*viewppc.tga"
 	)
+	# The preload package is built at link time; without this, editing a file under Data/ (an image
+	# from mireina/images, a text screen, a voice) does not relink and pete.data goes stale.
+	file(GLOB_RECURSE GAME_DATA_FILES CONFIGURE_DEPENDS "${GAME_DATADIR}/*")
+	set_property(TARGET ${GAME_TARGET} APPEND PROPERTY LINK_DEPENDS ${GAME_DATA_FILES})
 endif()
