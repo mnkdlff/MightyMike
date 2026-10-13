@@ -25,3 +25,4 @@ libs/
 build-wasm/
 .venv-tools/
 __pycache__/
+mireina/images/reina.*

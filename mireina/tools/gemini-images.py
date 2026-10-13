@@ -12,7 +12,8 @@ Run with the project venv:
   .venv-tools/bin/python mireina/tools/gemini-images.py scores win      # a subset
   .venv-tools/bin/python mireina/tools/gemini-images.py --list-models   # what the key can use
 Options: --model NAME, --suffix "extra instruction" (appended to every prompt), --convert (run images.py after),
-         --out DIR (default mireina/images), --pack PATH (the markdown pack).
+         --out DIR (default mireina/images), --pack PATH (the markdown pack), --prompt TEXT (one name, custom prompt),
+         --ref PHOTO (a likeness reference sent as a second picture; keep it out of git).
 """
 from __future__ import annotations
 
@@ -109,9 +110,22 @@ def png_bytes(name: str) -> bytes:
     return buf.getvalue()
 
 
-def generate(key: str, model: str, name: str, prompt: str) -> Image.Image:
+def reference_bytes(path: Path) -> bytes:
+    """A likeness reference (a photo), downscaled to 1024 px and JPEG-encoded for the request."""
+    im = Image.open(path).convert("RGB")
+    im.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
+    buf = io.BytesIO()
+    im.save(buf, format="JPEG", quality=90)
+    return buf.getvalue()
+
+
+def generate(key: str, model: str, name: str, prompt: str, ref: bytes | None = None) -> Image.Image:
+    parts = [{"inline_data": {"mime_type": "image/png", "data": base64.b64encode(png_bytes(name)).decode()}}]
+    if ref:
+        parts.append({"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(ref).decode()}})
+    parts.append({"text": prompt})
     body = {
-        "contents": [{"parts": [{"inline_data": {"mime_type": "image/png", "data": base64.b64encode(png_bytes(name)).decode()}}, {"text": prompt}]}],
+        "contents": [{"parts": parts}],
         "generationConfig": {"responseModalities": ["IMAGE", "TEXT"], "imageConfig": {"aspectRatio": "4:3"}},
     }
     try:
@@ -156,6 +170,8 @@ def main() -> None:
     ap.add_argument("--out", type=Path, default=images.DROP_DIR)
     ap.add_argument("--pack", type=Path, default=DEFAULT_PACK)
     ap.add_argument("--list-models", action="store_true")
+    ap.add_argument("--ref", type=Path, help="likeness reference image sent as the second picture (never committed)")
+    ap.add_argument("--prompt", help="use this prompt instead of the pack's (one name at a time)")
     a = ap.parse_args()
     key = api_key()
     if a.list_models:
@@ -163,17 +179,22 @@ def main() -> None:
             print(m)
         return
     prompts = parse_pack(a.pack)
+    if a.prompt:
+        if len(a.names) != 1:
+            raise SystemExit("--prompt takes exactly one name")
+        prompts = {a.names[0]: " ".join(a.prompt.split())}
     names = a.names or [n for n in images.GEMINI if n in prompts]
     unknown = [n for n in names if n not in prompts]
     if unknown:
         raise SystemExit(f"no prompt in the pack for: {', '.join(unknown)}")
+    ref = reference_bytes(a.ref) if a.ref else None
     model = a.model or pick_model(list_models(key))
     print(f"model · {model}")
     a.out.mkdir(parents=True, exist_ok=True)
     for name in names:
         prompt = prompts[name] + (" " + a.suffix.strip() if a.suffix.strip() else "")
         print(f"→ {name}")
-        im = fit(generate(key, model, name, prompt))
+        im = fit(generate(key, model, name, prompt, ref))
         dst = a.out / f"{name}.png"
         im.save(dst)
         print(f"wrote · {dst.relative_to(images.ROOT) if dst.is_relative_to(images.ROOT) else dst}")
