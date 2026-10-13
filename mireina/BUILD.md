@@ -117,6 +117,9 @@ source fix beyond the six guarded patches listed above.
 - **No local path in the wasm.** `-ffile-prefix-map` on the game and on SDL: `strings pete.wasm | grep -c /Users/` is 0.
   SDL's install is keyed on `.prefix-mapped`, so a cached SDL built without the flag is rebuilt once.
 
+- **Top 8 table under the new title.** `scores.tga` now carries « Top Scores de la Reina » on two lines down to
+  y=222; on the web the table starts at `TOP_SCORE_VTAB` 228 with a 30 px line gap (native: 190 / 32).
+
 ## Notes
 
 - The `pause` hooks in `src/Heart/Infobar.c:ShowPaused` are **dead code**: `ShowPaused`'s only

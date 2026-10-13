@@ -44,8 +44,13 @@ static void DoDifficultyScreen(void);
 
 #define	SCORE_HTAB			70
 #define	NAME_HTAB			250
+#if MR_WEB
+#define	TOP_SCORE_VTAB		228		// La Reina's « Top Scores de la Reina » lettering reaches y=222: the table starts under it
+#define	SCORE_LINE_GAP		30		// (8 rows × 30 + 32 px glyphs = 470, inside the 480)
+#else
 #define	TOP_SCORE_VTAB		190
 #define	SCORE_LINE_GAP		32
+#endif
 
 #define	BATTERY_X1			160
 #define	BATTERY_X2			430
