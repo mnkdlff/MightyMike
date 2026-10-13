@@ -118,7 +118,7 @@ static void Boot(int argc, char** argv)
 #if GLRENDER
 	windowFlags |= SDL_WINDOW_OPENGL;
 #endif
-	gSDLWindow = SDL_CreateWindow(GAME_FULL_NAME " " GAME_VERSION, VISIBLE_WIDTH, VISIBLE_HEIGHT, windowFlags);
+	gSDLWindow = SDL_CreateWindow(MR_WINDOW_TITLE, VISIBLE_WIDTH, VISIBLE_HEIGHT, windowFlags);
 	if (!gSDLWindow)
 		throw std::runtime_error("Couldn't create SDL window.");
 

@@ -7,3 +7,10 @@
 #define GAME_VERSION_MAJOR	@PROJECT_VERSION_MAJOR@
 #define GAME_VERSION_MINOR	@PROJECT_VERSION_MINOR@
 #define GAME_VERSION_PATCH	@PROJECT_VERSION_PATCH@
+
+// The web edition's window title (SDL mirrors it into document.title).
+#if MR_WEB
+#define MR_WINDOW_TITLE		"Power Reina"
+#else
+#define MR_WINDOW_TITLE		GAME_FULL_NAME " " GAME_VERSION
+#endif

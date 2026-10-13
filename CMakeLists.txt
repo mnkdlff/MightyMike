@@ -146,6 +146,11 @@ add_compile_definitions(
 target_compile_definitions(${GAME_TARGET} PRIVATE
 	GL_SILENCE_DEPRECATION)
 
+if(EMSCRIPTEN)
+	# no local path survives in the wasm (strings are embedded by asserts and __FILE__)
+	target_compile_options(${GAME_TARGET} PRIVATE "-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
+endif()
+
 if(NOT MSVC)
 	target_compile_options(${GAME_TARGET} PRIVATE
 		-fexceptions

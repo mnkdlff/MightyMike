@@ -586,7 +586,7 @@ static void OnChangePlayfieldSizeViaSettings(void)
 #if !MR_WEB
 static void OnChangeDebugInfoInTitleBar(void)
 {
-	SDL_SetWindowTitle(gSDLWindow, GAME_FULL_NAME " " GAME_VERSION);
+	SDL_SetWindowTitle(gSDLWindow, MR_WINDOW_TITLE);
 }
 #endif
 

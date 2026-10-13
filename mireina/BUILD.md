@@ -112,6 +112,10 @@ source fix beyond the six guarded patches listed above.
   handle while `SoundHand_Music` was still nil (the legal screen has no song): `GetHandleSize(nil)` trapped with
   « memory access out of bounds ». `StartMusic` now returns when no song is loaded; the next `PlaySong` honours
   the preference. The link also keeps function names (`--profiling-funcs`) so a trap in the page names its frames.
+- **Tab title.** SDL set `document.title` to the native name; the web edition titles its window Power Reina
+  (`MR_WINDOW_TITLE` in `version.h.in`, used by `Boot.cpp` and `SettingsScreen.c`).
+- **No local path in the wasm.** `-ffile-prefix-map` on the game and on SDL: `strings pete.wasm | grep -c /Users/` is 0.
+  SDL's install is keyed on `.prefix-mapped`, so a cached SDL built without the flag is rebuilt once.
 
 ## Notes
 

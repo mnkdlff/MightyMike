@@ -12,7 +12,7 @@ JOBS="$(sysctl -n hw.ncpu 2>/dev/null || nproc)"
 command -v emcmake >/dev/null || { echo "emcmake not found: brew install emscripten" >&2; exit 1; }
 command -v cmake >/dev/null || { echo "cmake not found: brew install cmake" >&2; exit 1; }
 
-if [ ! -f "$SDL_INSTALL/lib/cmake/SDL3/SDL3Config.cmake" ]; then
+if [ ! -f "$SDL_INSTALL/.prefix-mapped" ]; then
   mkdir -p "$LIBS"
   if [ ! -d "$SDL_SRC" ]; then
     # extract into a temporary tree and move it into place only once tar succeeded, so a failed
@@ -26,9 +26,11 @@ if [ ! -f "$SDL_INSTALL/lib/cmake/SDL3/SDL3Config.cmake" ]; then
   fi
   emcmake cmake -S "$SDL_SRC" -B "$SDL_SRC/build-wasm" \
     -DCMAKE_BUILD_TYPE=Release -DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_TEST_LIBRARY=OFF \
-    -DCMAKE_INSTALL_PREFIX="$SDL_INSTALL"
+    -DCMAKE_INSTALL_PREFIX="$SDL_INSTALL" \
+    -DCMAKE_C_FLAGS="-ffile-prefix-map=$SDL_SRC=SDL3"
   cmake --build "$SDL_SRC/build-wasm" -j"$JOBS"
   cmake --install "$SDL_SRC/build-wasm"
+  touch "$SDL_INSTALL/.prefix-mapped"
 fi
 
 emcmake cmake -S "$ROOT" -B "$ROOT/build-wasm" -DCMAKE_BUILD_TYPE=Release \
