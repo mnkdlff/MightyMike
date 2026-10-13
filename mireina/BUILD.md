@@ -206,6 +206,23 @@ when `PowerPeteSavedGameData1` exists and asks for that slot through `loadSlot`.
 vestíbulo (sessions, bunnies, deaths, areas, worlds, weapons, best score, play time) are reduced from the
 events table above; nothing here changes the engine.
 
+## Images (La Reina's edition)
+
+Every screen is an 8-bit colormapped TGA (`src/Drivers/TGA.c`: type 1 or 9, no id field, 24-bit
+palette, ≤ 256 colours) and installs its own palette while shown. `mireina/tools/images.py` turns
+a PNG into that format (run it with the Pillow venv: `python3 -m venv .venv-tools && .venv-tools/bin/pip
+install pillow`, then `.venv-tools/bin/python mireina/tools/images.py`):
+
+- **free palette** (nothing drawn over): legal 420×251, charging, head, lose, the five scenes.
+- **kept palette** (sprites drawn over are indexed in it): titlepagepp, diff, playerchoose, scores,
+  bonus, win, credits1, winbw, overheadmap — the new picture is quantized onto the original palette,
+  so keep the original colour scheme or the sprites will look wrong.
+
+Drop Gemini outputs as `mireina/images/<name>.png` (exact size) and run the script; the originals of
+the artwork screens are exported to `mireina/images/orig/` (`images.py export`). The text screens
+(legal, charging, head, bonus, credits1) are rendered from `mireina/texts.json` by
+`mireina/tools/render-screens.py`. Rebuild afterwards: the images live in `pete.data`.
+
 ## Texts (La Reina's edition)
 
 - `mireina/texts.json` is an export of the « Power Pete Textos » artifact (`{ itemId: text }`).
