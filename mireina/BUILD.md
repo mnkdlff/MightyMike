@@ -52,6 +52,11 @@ play audio, which exempts the tab from throttling) when timing anything.
 - **`src/Drivers/SDLRender.c`**: `emscripten_sleep(0)` after `SDL_RenderPresent`, so the blocking
   1995 game loop yields to the browser once per frame (paint + input delivery).
 - **`src/Heart/FilterThreads.c`**: one filter thread on the web (web workers would need COOP/COEP).
+- **`src/Heart/Cinema.c`** (`MR_HoldScreen`): the still screens La Reina must have time to see stay longer
+  on the web — the lose picture at least 9 s, the world sign at least 6 s, the confetti screen at least 10 s
+  (longer while their music plays), and a tap skips them only after a grace period (2 s, 1 s, 2 s) so a tap
+  left over from the game does not blow through them; Karim's win text scrolls a third slower
+  (`DoScrollingTextScreen` takes the line period, so the spacing stays the same). The legal screen keeps its 6 s.
 - **`src/Boot.cpp`**: the data folder is the preloaded `Data`; no `gamecontrollerdb.txt` (SDL's
   built-in gamepad mappings are used); SDL canvas/keyboard hints; no message box on a fatal error.
 

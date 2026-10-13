@@ -97,6 +97,37 @@ static	short	cX[] = {CURSOR_X,CURSOR_X+OPTION_SPACING,CURSOR_X+(OPTION_SPACING*2
 static	ObjNode		*icons[10];
 
 
+#if MR_WEB
+/******************** MR HOLD SCREEN ********************/
+//
+// MiReina: a still screen (La Reina on the lose screen, the world sign) stays at least minTicks, longer
+// while its music plays; a tap skips it only once graceTicks have passed, so a tap left over from the
+// game does not blow through it.
+//
+
+static void MR_HoldScreen(long minTicks, long graceTicks)
+{
+	long elapsed = 0;
+	do
+	{
+		RegulateSpeed2(1);
+		EraseObjects();
+		MoveObjects();
+		DrawObjects();
+		DumpUpdateRegions();
+		ReadKeyboard();
+
+		bool wantsOut = UserWantsOut();						// (consumed every frame)
+		if (elapsed >= graceTicks && wantsOut)
+			break;
+
+		DoSoundMaintenance(true);							// (must be after readkeyboard)
+		elapsed++;
+	} while ((elapsed < minTicks || (gGamePrefs.music && IsMusicPlaying())) && !gAbortDemoFlag);
+}
+#endif
+
+
 /******************** DO TITLE SCREEN ********************/
 
 void DoTitleScreen(void)
@@ -427,7 +458,11 @@ void DoSceneScreen(void)
 
 	LoadImage(imagePath, LOADIMAGE_FADEIN);
 
+#if MR_WEB
+	MR_HoldScreen(60*6, 60*1);								// La Reina's sign: at least 6 s
+#else
 	WaitWhileMusic();
+#endif
 	StopMusic();
 
 }
@@ -1086,7 +1121,8 @@ static void DoScrollingTextScreen(
 		const char* backgroundFilePath,
 		const char* textFilePath,
 		int letterBaseScrollSpeed,
-		int letterVanishAtY)
+		int letterVanishAtY,
+		int linePeriod)					// frames between two lines (50 originally; scale it with the speed)
 {
 Handle	textRez = nil;
 int		textPos;
@@ -1131,7 +1167,7 @@ short	lineCount;
 
 					/* SEE IF MAKE NEXT TEXT LINE */
 
-		if (textPos < textLength && ++lineCount > 50)		// see if ready for next line
+		if (textPos < textLength && ++lineCount > linePeriod)	// see if ready for next line
 		{
 			lineCount = 0;
 			textPos = LayOutScrollingTextLine(*textRez, textLength, textPos, letterBaseScrollSpeed, letterVanishAtY);
@@ -1160,7 +1196,7 @@ void DoCredits(void)
 	MR_EMIT("credits", 0, 0);
 	FadeOutGameCLUT();
 	PlaySong(SONG_ID_RACE);
-	DoScrollingTextScreen(":Images:credits1.tga", ":System:credits.txt", 0x8000L, 95);
+	DoScrollingTextScreen(":Images:credits1.tga", ":System:credits.txt", 0x8000L, 95, 50);
 }
 
 
@@ -1354,7 +1390,11 @@ void DoLoseScreen(void)
 
 	PlaySong(SONG_ID_LOSEGAME);
 	LoadImage(":Images:lose.tga", LOADIMAGE_FADEIN);
+#if MR_WEB
+	MR_HoldScreen(60*9, 60*2);								// La Reina's lose picture: at least 9 s
+#else
 	WaitWhileMusic();
+#endif
 	StopMusic();
 }
 
@@ -1364,6 +1404,10 @@ void DoLoseScreen(void)
 void DoWinScreen(void)
 {
 	bool easyWin = gDifficultySetting == DIFFICULTY_EASY;
+#if MR_WEB
+	long confettiTicks = 0;									// MiReina: « La Reina Hermosa » stays at least 10 s,
+	bool wantsOut = false;									// and a tap skips it only after 2 s
+#endif
 	MR_EMIT("win", gDifficultySetting, gScore);
 
 
@@ -1373,12 +1417,24 @@ void DoWinScreen(void)
 
 	PlaySong(easyWin ? SONG_ID_WINGAMELOOP : SONG_ID_WINHUM);
 
+#if MR_WEB
+	// MiReina: Karim's win text scrolls a third slower (same line spacing), each line stays about 14 s.
+	DoScrollingTextScreen(
+			":Images:winbw.tga",
+			easyWin ? ":System:win1.txt" : ":System:win3.txt",		// note: win2 is unused
+			0x8000L,
+			30,
+			69
+	);
+#else
 	DoScrollingTextScreen(
 			":Images:winbw.tga",
 			easyWin ? ":System:win1.txt" : ":System:win3.txt",		// note: win2 is unused
 			0xb000L,
-			30
+			30,
+			50
 	);
+#endif
 
 
 					/* SKIP CONFETTI SCREEN IF PLAYING ON EASY */
@@ -1429,7 +1485,13 @@ void DoWinScreen(void)
 		ReadKeyboard();
 		DoSoundMaintenance(true);							// (must be after readkeyboard)
 
+#if MR_WEB
+		confettiTicks++;
+		wantsOut = UserWantsOut();							// (consumed every frame)
+	} while (!(confettiTicks >= 60*2 && wantsOut) && (IsMusicPlaying() || confettiTicks < 60*10));
+#else
 	} while (!UserWantsOut() && IsMusicPlaying());
+#endif
 
 	FadeOutGameCLUT();
 
