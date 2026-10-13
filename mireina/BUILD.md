@@ -242,6 +242,24 @@ are loaded at boot by `InitSound`; a file Pomme cannot read ends in a `fatal` ev
 `mireina/tools/voices.sh` converts recordings from `mireina/voices/` with `afconvert` into AIFF 16-bit
 big-endian PCM at 22 050 Hz mono (Pomme's AIFF reader: `extern/Pomme/src/SoundFormats/AIFF.cpp`,
 'NONE' compression). The recording guide is `mireina/voices/README.md`. Rebuild afterwards.
+Without recordings, `.venv-tools/bin/python mireina/tools/gemini-voices.py --voice Fenrir --out mireina/voices`
+speaks the nine lines of `texts.json` (`voice`) with the Gemini TTS API (key as for `gemini-images.py`; the style
+is a short prefix of the prompt, these models refuse system instructions; `--check gemini-3.8-flash` transcribes
+each file back) as WAVs that `voices.sh` then converts.
+
+## Balloons (La Reina's edition)
+
+The same nine lines are speech balloons drawn above Pete while the voice plays (`MakeMikeMessage`,
+`src/Misc/MiscAnims.c`): `Data/Shapes/main.shapes`, shape 5 (`ObjType_Message`), one frame and one anim per
+line in `messageNum` order (IllSaveYou, ComeHereRodent, TakeThat, EatMyDust, food, FreeDude, Ouch,
+NoMoreNiceGuy, FireInTheHole; DeathScream has no balloon). `mireina/tools/shapes.py` reads and patches
+Pangea's shape tables (packed container RLB/RLW/raw, big-endian offsets, per frame w/h/x/y + pixel and mask
+blobs relative to the shape header; `patch` appends the new blobs and saves the table unpacked, which
+`LoadPackedFile` accepts). `mireina/tools/balloons.py preview DIR` renders the balloons from the `voice`
+lines of `texts.json` (an original balloon with its lettering erased, stretched, Comic Sans MS Bold 14 px
+upper case, FreeDude in red) and `balloons.py apply` writes them into `main.shapes`. Sprites use the Mac
+system palette in play (`border2.tga`): 0 white, 255 black, greys 43/86/129/172 and 245–254. Rebuild
+afterwards: the file lives in `pete.data`.
 
 ## Texts (La Reina's edition)
 
