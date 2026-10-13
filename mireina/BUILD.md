@@ -223,6 +223,14 @@ the artwork screens are exported to `mireina/images/orig/` (`images.py export`).
 (legal, charging, head, bonus, credits1) are rendered from `mireina/texts.json` by
 `mireina/tools/render-screens.py`. Rebuild afterwards: the images live in `pete.data`.
 
+## Voices (La Reina's edition)
+
+The nine spoken effects (`Data/Audio/Default/{IllSaveYou,ComeHereRodent,TakeThat,EatMyDust,NoMoreNiceGuy,FireInTheHole,Ouch,FreeDude,DeathScream}.aiff`)
+are loaded at boot by `InitSound`; a file Pomme cannot read ends in a `fatal` event in the page.
+`mireina/tools/voices.sh` converts recordings from `mireina/voices/` with `afconvert` into AIFF 16-bit
+big-endian PCM at 22 050 Hz mono (Pomme's AIFF reader: `extern/Pomme/src/SoundFormats/AIFF.cpp`,
+'NONE' compression). The recording guide is `mireina/voices/README.md`. Rebuild afterwards.
+
 ## Texts (La Reina's edition)
 
 - `mireina/texts.json` is an export of the « Power Pete Textos » artifact (`{ itemId: text }`).

@@ -24,3 +24,4 @@ cache/
 libs/
 build-wasm/
 .venv-tools/
+__pycache__/
